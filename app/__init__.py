@@ -9,12 +9,12 @@ def create_app(debug=False):
     app = Flask(__name__)
     app.debug = debug
     app.config['SECRET_KEY'] = 'secret!'
+    # CORSを全面許可
+    CORS(app, supports_credentials=True)
 
     from .api import API
     api = API(app)
-    from .soc import soc as soc_blueprint
-    app.register_blueprint(soc_blueprint)
+    from . import ws
 
     socketio.init_app(app)
-    CORS(app)
     return app
