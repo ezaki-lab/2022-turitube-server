@@ -24,18 +24,18 @@ class Chat(Namespace):
         include_self=True,
         room=room)
 
-
-    def on_text_update_request(self, data):
-        self.text = data["text"]
+    def on_chat_update(self, data):
+        text = data["text"]
         room = data["room_id"]
-        print("a")
+        screen_name = data["screen_name"]
+        print("chat_update")
 
-        # 全員向けに送信すると入力の途中でテキストエリアが変更されて日本語入力がうまくできない
-        emit("text_update",
+        emit("chat", 
             {
-                "text": self.text
+                "screen_name": screen_name,
+                "text": text
             },
             broadcast=True,
-            include_self=False,
+            include_self=True,
             room=room
         )
