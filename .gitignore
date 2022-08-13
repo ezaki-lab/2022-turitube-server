@@ -105,3 +105,4 @@ venv.bak/
 
 # developer adds
 secret.yaml
+.vscode

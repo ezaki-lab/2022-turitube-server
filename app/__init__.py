@@ -7,6 +7,7 @@ socketio = SocketIO(cors_allowed_origins="*")
 def create_app(debug=False):
     """Create an application."""
     app = Flask(__name__)
+    app.config['JSON_AS_ASCII'] = False
     app.debug = debug
     app.config['SECRET_KEY'] = 'secret!'
     # CORSを全面許可

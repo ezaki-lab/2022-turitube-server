@@ -1,7 +1,3 @@
-"""
-製作ソケット
-"""
-
 from flask import request
 from flask_socketio import emit, Namespace
 
