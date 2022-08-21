@@ -1,12 +1,14 @@
 from flask import Flask
 from flask_socketio import SocketIO
 from flask_cors import CORS
+import os
 
-socketio = SocketIO(cors_allowed_origins="*")
+socketio = SocketIO(cors_allowed_origins="*", ping_timeout=5, ping_interval=5)
+static_folder = os.path.dirname(os.path.abspath(__file__)) + "/../static"
 
 def create_app(debug=False):
     """Create an application."""
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder=static_folder)
     app.config['JSON_AS_ASCII'] = False
     app.debug = debug
     app.config['SECRET_KEY'] = 'secret!'
