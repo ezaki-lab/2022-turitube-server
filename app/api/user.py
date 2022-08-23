@@ -18,24 +18,25 @@ class User(Resource):
 
     # ユーザー登録
     def post(self):
-        user_id = request.args.get('user_id')
-        name = request.args.get('name')
-        ident_id = generate_id()
+        user_name = request.args.get('user_name')
+        screen_name = request.args.get('screen_name')
+        user_id = generate_id()
 
         # exist check
-        sql_text = f"""SELECT `user_id` FROM `User` WHERE `user_id`='{user_id}'"""
+        sql_text = f"""SELECT `user_id` FROM `User` WHERE `user_name`='{user_name}'"""
         is_exist = sql_connection(sql_text)
+        # ユーザー登録するよ
         if not is_exist:
-            sql_text = f"""INSERT INTO `User`(`id`, `user_id`, `name`) VALUES ('{ident_id}', '{user_id}', '{name}')"""
+            sql_text = f"""INSERT INTO `User`(`user_id`, `user_name`, `screen_name`) VALUES ('{user_id}', '{user_name}', '{screen_name}')"""
             sql_connection(sql_text)
 
             #正常に登録できたら204
             return jsonify({
                 "status": True,
                 "comment": "success create account!",
-                "ident_id": ident_id,
                 "user_id": user_id,
-                "name": name
+                "user_name": user_name,
+                "screen_name": screen_name
             })
         
         else:
@@ -43,10 +44,6 @@ class User(Resource):
                 "status": False,
                 "comment": "already existed!"
             })
-
-    # ユーザー情報の更新
-    def put(self):
-        pass
 
     # ユーザーデータの削除(実装しない)
     def delete(self):

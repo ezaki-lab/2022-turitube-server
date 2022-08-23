@@ -92,6 +92,7 @@ class Stream(Namespace):
         sid = request.sid
         user_name = data["user_name"]
         screen_name = data["screen_name"]
+        avatar = data["avatar"]
         leader = False
 
         # ルームが無ければ作成する
@@ -115,7 +116,8 @@ class Stream(Namespace):
             "cam": False,
             "mic": False,
             "is_leader": leader,
-            "is_loading": True
+            "is_loading": True,
+            "avatar":avatar
         })
         
         self.stream[room]["is_open"] = True

@@ -19,7 +19,7 @@ class Login(Resource):
         user_id = request.args.get('user_id')
         # ユーザーが存在したらログインするための情報を返す
         if is_user_exist(user_id):
-            sql_text = f"""SELECT `user_id`, `user_name`, `screen_name` FROM `User` WHERE `user_id`='{user_id}'"""
+            sql_text = f"""SELECT `user_id`, `user_name`, `screen_name`, `avatar` FROM `User` WHERE `user_id`='{user_id}'"""
             user_data = sql_connection(sql_text)
             return jsonify({
                 "status": True,
@@ -27,6 +27,7 @@ class Login(Resource):
                 "user_id": user_data[0]["user_id"],
                 "user_name": user_data[0]["user_name"],
                 "screen_name": user_data[0]["screen_name"],
+                "avatar": json.loads(user_data[0]["avatar"])
             })
 
         # ユーザーが存在しなかったらエラーを返す
