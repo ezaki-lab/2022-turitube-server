@@ -60,7 +60,12 @@ class Stream(Namespace):
         sql_text = f"""UPDATE `Stream` SET `is_open`={is_open}, `room_setting`='{room_setting}', `users`='{users}' WHERE `room_id`='{room_id}'"""
         sql_connection(sql_text)
 
-    # 切断時
+    def delete_room(self, room):
+        self.stream[room]["is_open"] = False
+        self.reflection_room_of_db(room)
+        del self.stream[room]
+
+    # 切断時a
     def on_disconnect(self):
         print("切断", request.sid)
         sid = request.sid
@@ -68,22 +73,30 @@ class Stream(Namespace):
         # room内のユーザーを削除する
         deleted_index = 0
         del self.stream["sid"][sid]
-        for i, users in enumerate(self.stream[target_room]["users"]):
-            if users["sid"] == sid:
-                del self.stream[target_room]["users"][i]
-                deleted_index = 0
-        
-        # 部屋内のユーザーが0人になったらdb更新後、部屋を削除する
-        if self.stream[target_room]["users"] == []:
-            self.stream[target_room]["is_open"] = False
-            self.reflection_room_of_db(target_room)
-            del self.stream[target_room]
-        
-        # リーダーが退出したとき、部屋が存在していたらリーダーを更新
-        else:
-            if deleted_index == 0:
-                self.stream[target_room]["users"][0]["is_leader"] = True
-            self.update_room(target_room)
+
+        # 2回実行されるのでエラーを吐くが気にしてはいけない
+        try:
+            for i, users in enumerate(self.stream[target_room]["users"]):
+                if users["sid"] == sid:
+                    del self.stream[target_room]["users"][i]
+                    deleted_index = i
+            
+            # 部屋内のユーザーが0人になったらdb更新後、部屋を削除する
+            if self.stream[target_room]["users"] == []:
+                self.delete_room(target_room)
+            
+            # リーダーが退出したとき、部屋を削除+emitで通知
+            else:
+                if deleted_index == 0:
+                    self.delete_room(target_room)
+                    emit("deleted_room", 
+                    broadcast=True,
+                    include_self=True,
+                    room=target_room)
+                else:
+                    self.update_room(target_room)
+        except KeyError:
+            pass
 
     # ルーム参加(作成込み)時の処理(DBにはすでに反映されている)
     def on_join(self, data):
@@ -93,15 +106,14 @@ class Stream(Namespace):
         user_name = data["user_name"]
         screen_name = data["screen_name"]
         avatar = data["avatar"]
-        leader = False
+        host = False
 
         # ルームが無ければ作成する
         if not room in self.stream.keys():
             self.init_stream_room(room)
-            leader = True
+            host = True
             room_setting = json.loads(sql_connection(f"""SELECT `room_setting` FROM `Stream` WHERE `room_id`='{room}'""")[0]["room_setting"])
             self.stream[room]["room_setting"] = room_setting
-            print("room_setting!", self.stream[room]["room_setting"])
             # これはAPI側でやる処理
             # sql_connection(f"""INSERT INTO `Stream`(`room_id`) VALUES ('{room}')""")
         
@@ -115,7 +127,8 @@ class Stream(Namespace):
             "pos_y": 0,
             "cam": False,
             "mic": False,
-            "is_leader": leader,
+            "is_host": host,
+            "is_streamer": host, # ホストは始めから配信者扱い、ホスト以外はリスナー扱い
             "is_loading": True,
             "avatar":avatar
         })
@@ -132,6 +145,12 @@ class Stream(Namespace):
         broadcast=True,
         include_self=True,
         room=room)
+
+        emit("init_user_setting", 
+        {
+            "is_host": host,
+            "is_streamer": host
+        })
 
         # room情報更新
         self.update_room(room)
@@ -156,7 +175,6 @@ class Stream(Namespace):
     def on_update_user(self, data):
         room = data["room_id"]
         user_stream = data["user"]
-        print(user_stream)
         for i, users in enumerate(self.stream[room]["users"]):
             if users["sid"] == data["user"]["sid"]:
                 self.stream[room]["users"][i] = user_stream

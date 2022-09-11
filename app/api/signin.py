@@ -1,5 +1,3 @@
-from re import S
-from xml.etree.ElementTree import iselement
 from flask_restful import Resource, Api
 from flask import Flask, abort, request, jsonify
 from app.utils.db_conn import sql_connection
