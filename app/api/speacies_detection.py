@@ -2,8 +2,13 @@ from flask_restful import Resource, Api
 from flask import Flask, abort, request, jsonify
 from app.utils.db_conn import sql_connection
 from app.lib.detection.speacies_detection import SpeaciesDetectionManager
-from app.lib.save_streamphoto import save_streamphoto
+from app.lib.streamphoto import save_streamphoto
 import json
+
+def is_user_exist(user_id):
+    sql_text = f"""SELECT `user_name` FROM `User` WHERE `user_id`='{user_id}'"""
+    is_exist = sql_connection(sql_text)
+    return is_exist
 
 # 魚種判別関連
 class Speacies(Resource):
@@ -20,27 +25,23 @@ class Speacies(Resource):
         lat = post_data["lat"]
         lng = post_data["lng"]
         base64img = post_data["base64img"]
-        """
-        result
-        {
-            id: int,
-            name: str
-        }
-        """
-        result = self.manager.detect()
-        if not result["id"]:
-            result["status"] = 404
+
+        if is_user_exist(user_id):
+            result = self.manager.detect()
+            if not result["id"]:
+                result["status"] = 404
+                return jsonify(
+                    result
+                )
+
+            # 推論結果が存在したら画像を保存
+            save_streamphoto(post_data)
+            # クエストと実績の進捗を進める
+            # 進捗が進んだデータを受け取る
+            result["quest_progress"] = []
+            result["achive_progress"] = []
+            result["status"] = 200
             return jsonify(
                 result
             )
-
-        # 推論結果が存在したら画像を保存
-        save_streamphoto(post_data)
-        # クエストと実績の進捗を進める
-        # 進捗が進んだデータを受け取る
-        result["quest_progress"] = []
-        result["achive_progress"] = []
-        result["status"] = 200
-        return jsonify(
-            result
-        )
+        

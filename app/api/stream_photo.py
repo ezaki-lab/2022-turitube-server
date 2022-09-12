@@ -1,7 +1,7 @@
 from flask_restful import Resource, Api
 from flask import Flask, abort, request, jsonify
 from app.utils.db_conn import sql_connection
-from app.lib.save_streamphoto import save_streamphoto
+from app.lib.streamphoto import save_streamphoto, get_streamphoto
 import os
 import json
 
@@ -14,6 +14,7 @@ def is_user_exist(user_id):
 # 記録内容 - 画像データ(ファイル形式で保存) 
 class StreamPhoto(Resource):
     # 画像を記録する
+    """
     def post(self):
         # ルームidと各種設定、サムネイル画像を受け取る
         post_data = request.get_json()
@@ -21,19 +22,14 @@ class StreamPhoto(Resource):
 
         # DBに置く
         return '', 204
+    """
 
     # 画像名を受け取る
     def get(self):
         user_id = request.args.get('user_id')
+        room_id = request.args.get('room_id')
         if is_user_exist(user_id):
-            # 画像名取得
-            sql_text = f"""SELECT `img_name` FROM `StreamPhoto` WHERE `user_id`='{user_id}' AND `is_sent`=false"""
-            img_name_list = sql_connection(sql_text)
-            # 取得したis_sentを全てtrueにして再度取得しないようにする(デバッグ用に今は切る)
-            '''
-            sql_text = f"""UPDATE `StreamPhoto` SET `is_sent`=true WHERE `user_id`='{user_id}' AND `is_sent`=false"""
-            sql_connection(sql_text)
-            '''
+            img_name_list = get_streamphoto(user_id, room_id)
             return jsonify({
                 "status": True,
                 "comment": "success get img Name!",
