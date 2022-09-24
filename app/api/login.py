@@ -9,7 +9,7 @@ def is_user_exist(user_id):
     is_exist = sql_connection(sql_text)
     return is_exist
 
-# ログインAPI - userIdを基にログインできるかを判定して、ログインできるならuser_nameとscreen_nameを返す
+# ログインAPI - userIdを基にログインできるかを判定して、ログインできるならstatus: trueを返す
 # signInとは別物
 class Login(Resource):
     # ユーザーログイン
@@ -17,15 +17,9 @@ class Login(Resource):
         user_id = request.args.get('user_id')
         # ユーザーが存在したらログインするための情報を返す
         if is_user_exist(user_id):
-            sql_text = f"""SELECT `user_id`, `user_name`, `screen_name`, `avatar` FROM `User` WHERE `user_id`='{user_id}'"""
-            user_data = sql_connection(sql_text)
             return jsonify({
                 "status": True,
                 "comment": "success login account!",
-                "user_id": user_data[0]["user_id"],
-                "user_name": user_data[0]["user_name"],
-                "screen_name": user_data[0]["screen_name"],
-                "avatar": json.loads(user_data[0]["avatar"])
             })
 
         # ユーザーが存在しなかったらエラーを返す

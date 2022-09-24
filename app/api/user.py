@@ -7,42 +7,32 @@ import json
 
 # ユーザー情報
 class User(Resource):
-    # 
+    # user_idからユーザーデータを全取得する
     def get(self):
         user_id = request.args.get('user_id')
-        sql_text = f"""SELECT `name`, DATE_FORMAT(`last_login`,'%Y年%m月%d日 %h時%i分') AS last_login, DATE_FORMAT(`create_date`, '%Y年%m月%d日') as create_date, `introduction`, `is_login` FROM `User` WHERE `user_id`='{user_id}'"""
-        user_data = sql_connection(sql_text)
-        return jsonify(user_data[0])
+        sql_text = f"""SELECT `user_id`, `user_name`, `screen_name`, `icon`, `introduction`, `point`, `exp`, `lv`, `title` FROM `User` WHERE `user_id`='{user_id}'"""
+        data = sql_connection(sql_text)[0]
+        sql_text = f"""SELECT `hat`, `head`, `body`, `waist`, `fishing_rod` FROM `Avatar` WHERE `user_id`='{user_id}'"""
+        avatar = sql_connection(sql_text)[0]
+        data["avatar"] = avatar 
+        return jsonify(data)
 
-    # ユーザー登録
-    def post(self):
-        user_name = request.args.get('user_name')
-        screen_name = request.args.get('screen_name')
-        user_id = generate_id()
+    # ユーザー情報の更新
+    def put(self):
+        user_data = request.get_json()
+        user_id = user_data["user_id"]
+        screen_name = user_data["screen_name"]
+        icon = user_data["icon"]
+        introduction = user_data["introduction"]
+        title = user_data["title"]
+        avatar_hat = user_data["avatar"]["hat"]
+        avatar_head = user_data["avatar"]["head"]
+        avatar_body = user_data["avatar"]["body"]
+        avatar_waist = user_data["avatar"]["waist"]
+        avatar_fishing_rod = user_data["avatar"]["fishing_rod"]
+        sql_connection(f"""UPDATE `User` SET `screen_name`='{screen_name}', `icon`='{icon}', `introduction`='{introduction}', `title`='{title}' WHERE `user_id`='{user_id}'""")
+        sql_connection(f"""UPDATE `Avatar` SET `hat`='{avatar_hat}', `head`='{avatar_head}', `body`='{avatar_body}', `waist`='{avatar_waist}', `fishing_rod`='{avatar_fishing_rod}' WHERE `user_id`='{user_id}'""")
 
-        # exist check
-        sql_text = f"""SELECT `user_id` FROM `User` WHERE `user_name`='{user_name}'"""
-        is_exist = sql_connection(sql_text)
-        # ユーザー登録するよ
-        if not is_exist:
-            sql_text = f"""INSERT INTO `User`(`user_id`, `user_name`, `screen_name`) VALUES ('{user_id}', '{user_name}', '{screen_name}')"""
-            sql_connection(sql_text)
-
-            #正常に登録できたら204
-            return jsonify({
-                "status": True,
-                "comment": "success create account!",
-                "user_id": user_id,
-                "user_name": user_name,
-                "screen_name": screen_name
-            })
-        
-        else:
-            return jsonify({
-                "status": False,
-                "comment": "already existed!"
-            })
-
-    # ユーザーデータの削除(実装しない)
+    # ユーザーデータの削除、作らないかも
     def delete(self):
         pass
