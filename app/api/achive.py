@@ -11,7 +11,7 @@ class Achive(Resource):
     def get(self):
         user_id = request.args.get('user_id')
         achiveManager.register_progress(user_id)
-        achive_progresses= achiveManager.get_achive_progress(user_id)
+        achive_progresses = achiveManager.get_achive_progress(user_id)
         return jsonify(
             achive_progresses
         )
