@@ -91,7 +91,8 @@ class Stream(Namespace):
             is_host = self.streams[room]["streamer"][user_name]["is_host"]
             del self.streams[room]["streamer"][user_name]
         else:
-            self.streams[room]["listener"].remove(user_name)
+            if user_name in self.streams[room]["listener"]:
+                self.streams[room]["listener"].remove(user_name)
         
         # ホストが退出したとき部屋を削除するk
         if is_host:
@@ -108,6 +109,7 @@ class Stream(Namespace):
 
     # チャット送信時
     def on_chat(self, data):
+        print(data)
         room = data["room_id"]
         user_name = data["user_name"]
         text = data["text"]
@@ -115,7 +117,7 @@ class Stream(Namespace):
             "user_name": user_name,
             "text": text
         },
-        room=room_id)
+        room=room)
 
     # 配信者の情報を更新する
     def on_update_user(self,data):

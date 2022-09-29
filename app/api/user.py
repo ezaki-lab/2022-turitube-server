@@ -7,15 +7,27 @@ import json
 
 # ユーザー情報
 class User(Resource):
-    # user_idからユーザーデータを全取得する
+    # user_idからユーザーデータを全取得する。またはuser_nameからわかるユーザーデータを取得する。
     def get(self):
         user_id = request.args.get('user_id')
-        sql_text = f"""SELECT `user_id`, `user_name`, `screen_name`, `icon`, `introduction`, `point`, `exp`, `lv`, `title` FROM `User` WHERE `user_id`='{user_id}'"""
-        data = sql_connection(sql_text)[0]
-        sql_text = f"""SELECT `hat`, `head`, `body`, `waist`, `fishing_rod` FROM `Avatar` WHERE `user_id`='{user_id}'"""
-        avatar = sql_connection(sql_text)[0]
-        data["avatar"] = avatar 
-        return jsonify(data)
+        # user_id(本人)
+        if user_id:
+            sql_text = f"""SELECT `user_id`, `user_name`, `screen_name`, `icon`, `introduction`, `point`, `exp`, `lv`, `title` FROM `User` WHERE `user_id`='{user_id}'"""
+            data = sql_connection(sql_text)[0]
+            sql_text = f"""SELECT `hat`, `head`, `body`, `waist`, `fishing_rod` FROM `Avatar` WHERE `user_id`='{user_id}'"""
+            avatar = sql_connection(sql_text)[0]
+            data["avatar"] = avatar 
+            return jsonify(data)
+        # user_name(他人)
+        else:
+            user_name = request.args.get('user_name')
+            sql_text = f"""SELECT `user_name`, `screen_name`, `icon`, `introduction`, `exp`, `lv`, `title` FROM `User` WHERE `user_name`='{user_name}'"""
+            data = sql_connection(sql_text)[0]
+            sql_text = f"""SELECT `hat`, `head`, `body`, `waist`, `fishing_rod` FROM `Avatar` WHERE `user_name`='{user_name}'"""
+            avatar = sql_connection(sql_text)[0]
+            data["avatar"] = avatar 
+            return jsonify(data)
+
 
     # ユーザー情報の更新
     def put(self):
