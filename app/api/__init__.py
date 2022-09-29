@@ -12,6 +12,7 @@ from .items import Items
 from .icon import Icon
 from .books import Books
 from .picture_book import PictureBook
+from .room import Room
 # user_name to user はprofileとかでいいと思います。
 import json
 
@@ -26,6 +27,7 @@ def API(app):
     api.add_resource(Icon, "/icon")
     api.add_resource(Books, "/books")
     api.add_resource(PictureBook, "/picture_book")
+    api.add_resource(Room, "/room")
 
     api.add_resource(Stream, '/stream')
     api.add_resource(StreamPhoto, "/stream_photo")
