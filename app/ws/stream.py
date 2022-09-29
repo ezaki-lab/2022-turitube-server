@@ -40,6 +40,7 @@ class Stream(Namespace):
         user_name = data["user_name"]
         user_type = data["user_type"] # streamer, listener
         self.set_user(data)
+        sql_connection(f"""UPDATE `Room` SET {user_type}={user_type} + 1 WHERE `room_id`='{room}'""")
 
         # 部屋がなければ作成
         if not room in self.streams.keys():
@@ -86,6 +87,9 @@ class Stream(Namespace):
         user_name = data["user_name"]
         room = data["room_id"]
         user_type = data["user_type"]
+
+        sql_connection(f"""UPDATE `Room` SET {user_type}={user_type} - 1 WHERE `room_id`='{room}'""")
+
         is_host = False
         if user_type=="streamer":
             is_host = self.streams[room]["streamer"][user_name]["is_host"]
@@ -98,6 +102,7 @@ class Stream(Namespace):
         if is_host:
             del self.streams[room]
             emit("delete_room", room=room)
+            sql_connection(f"""UPDATE `Room` SET `is_open`=0 WHERE `room_id`='{room}'""")
 
         # ホスト以外の時は部屋を更新する
         else:
@@ -109,7 +114,6 @@ class Stream(Namespace):
 
     # チャット送信時
     def on_chat(self, data):
-        print(data)
         room = data["room_id"]
         user_name = data["user_name"]
         text = data["text"]
