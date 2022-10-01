@@ -121,7 +121,9 @@ class Stream(Namespace):
             "user_name": user_name,
             "text": text
         },
-        room=room)
+        room=room,
+        broadcast=True,
+        include_self=True)
 
     # 配信者の情報を更新する
     def on_update_user(self,data):
@@ -129,8 +131,20 @@ class Stream(Namespace):
         user_name = data["user_name"]
         user_type = data["user_type"]
         if user_type == "streamer":
+            for key in self.streams[room]["streamer"]:
+                self.streams[room]["streamer"][key]["camera"] = False
             self.streams[room]["streamer"][user_name]["camera"] = data["user"]["camera"]
             self.streams[room]["streamer"][user_name]["audio"] = data["user"]["audio"]
             self.streams[room]["streamer"][user_name]["face"] = data["user"]["face"]
             self.update_stream(room)
+
+    def on_video(self, data):
+        room = data["room_id"]
+        peer_id = data["peer_id"]
+        emit("video", {
+            "peer_id": peer_id
+        },
+        room=room,
+        broadcast=True,
+        include_self=True)
         

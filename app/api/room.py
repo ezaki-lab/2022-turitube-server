@@ -25,12 +25,11 @@ class Room(Resource):
             # 画像名(extension含む)
             img_name = generate_id(64) + "." + base64img.split(";")[0][11:]
             save_b64img(base64img, savepath="thumbnail/", img_name=img_name)
-
-        print(post_data)
         
         sql_text = f"""INSERT INTO `Room`(`room_id`, `title`, `tag`, `host_name`, `max_streamer`, `max_listener`, `thumbnail`) VALUES ('{room_id}', '{setting["title"]}', '{setting["tag"]}', '{user_name}', '{setting["max_streamer"]}', '{setting["max_listener"]}', '{img_name}')"""
         sql_connection(sql_text)
 
+        print("uoo")
         return '', 204
 
 
