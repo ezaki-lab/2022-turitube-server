@@ -14,7 +14,7 @@ class User(Resource):
         if user_id:
             sql_text = f"""SELECT `user_id`, `user_name`, `screen_name`, `icon`, `introduction`, `point`, `exp`, `lv`, `title` FROM `User` WHERE `user_id`='{user_id}'"""
             data = sql_connection(sql_text)[0]
-            sql_text = f"""SELECT `hat`, `head`, `body`, `waist`, `fishing_rod` FROM `Avatar` WHERE `user_id`='{user_id}'"""
+            sql_text = f"""SELECT `hat`, `tops`, `hair`, `bottoms`, `fishing_rod` FROM `Avatar` WHERE `user_id`='{user_id}'"""
             avatar = sql_connection(sql_text)[0]
             data["avatar"] = avatar 
             return jsonify(data)
@@ -23,7 +23,7 @@ class User(Resource):
             user_name = request.args.get('user_name')
             sql_text = f"""SELECT `user_name`, `screen_name`, `icon`, `introduction`, `exp`, `lv`, `title` FROM `User` WHERE `user_name`='{user_name}'"""
             data = sql_connection(sql_text)[0]
-            sql_text = f"""SELECT `hat`, `head`, `body`, `waist`, `fishing_rod` FROM `Avatar` WHERE `user_name`='{user_name}'"""
+            sql_text = f"""SELECT `hat`, `tops`, `hair`, `bottoms`, `fishing_rod` FROM `Avatar` WHERE `user_name`='{user_name}'"""
             avatar = sql_connection(sql_text)[0]
             data["avatar"] = avatar 
             return jsonify(data)
@@ -38,12 +38,12 @@ class User(Resource):
         introduction = user_data["introduction"]
         title = user_data["title"]
         avatar_hat = user_data["avatar"]["hat"]
-        avatar_head = user_data["avatar"]["head"]
-        avatar_body = user_data["avatar"]["body"]
-        avatar_waist = user_data["avatar"]["waist"]
+        avatar_hair = user_data["avatar"]["hair"]
+        avatar_bottoms = user_data["avatar"]["bottoms"]
+        avatar_tops = user_data["avatar"]["tops"]
         avatar_fishing_rod = user_data["avatar"]["fishing_rod"]
         sql_connection(f"""UPDATE `User` SET `screen_name`='{screen_name}', `icon`='{icon}', `introduction`='{introduction}', `title`='{title}' WHERE `user_id`='{user_id}'""")
-        sql_connection(f"""UPDATE `Avatar` SET `hat`='{avatar_hat}', `head`='{avatar_head}', `body`='{avatar_body}', `waist`='{avatar_waist}', `fishing_rod`='{avatar_fishing_rod}' WHERE `user_id`='{user_id}'""")
+        sql_connection(f"""UPDATE `Avatar` SET `hat`='{avatar_hat}', `hair`='{avatar_hair}', `bottoms`='{avatar_bottoms}', `tops`='{avatar_tops}', `fishing_rod`='{avatar_fishing_rod}' WHERE `user_id`='{user_id}'""")
 
     # ユーザーデータの削除、作らないかも
     def delete(self):

@@ -4,7 +4,6 @@ from app.utils.db_conn import sql_connection
 from app.lib.streamphoto import save_streamphoto, get_streamphoto
 import os
 import json
-import requests
 
 def is_user_exist(user_id):
     sql_text = f"""SELECT `user_name` FROM `User` WHERE `user_id`='{user_id}'"""
@@ -18,8 +17,7 @@ class StreamPhoto(Resource):
     def post(self):
         # ルームidと各種設定、サムネイル画像を受け取る
         post_data = request.get_json()
-        print(post_data)
-        
+        save_streamphoto(post_data)
 
         # DBに置く
         return '', 204
@@ -28,12 +26,13 @@ class StreamPhoto(Resource):
     def get(self):
         user_id = request.args.get('user_id')
         room_id = request.args.get('room_id')
+        print("a")
         if is_user_exist(user_id):
-            img_name_list = get_streamphoto(user_id, room_id)
+            img_data = get_streamphoto(user_id, room_id)
             return jsonify({
                 "status": True,
                 "comment": "success get img Name!",
-                "img_name_list": img_name_list,
+                "img_data": img_data
             })
 
         # ユーザーが存在しなかったらエラーを返す
