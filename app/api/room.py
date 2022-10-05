@@ -4,11 +4,25 @@ import json
 from app.utils.db_conn import sql_connection
 from app.utils.unique_generater import generate_id
 from app.utils.save_b64img import save_b64img
+import datetime
+import pytz
+
+def get_h_m_s(td):
+    m, s = divmod(td.total_seconds(), 60)
+    h, m = divmod(m, 60)
+    return h, m, s
 
 # 配信部屋管理
 class Room(Resource):
     # 配信部屋を手に入れる
     def get(self):
+        room_id = request.args.get('room_id')
+        if room_id:
+            dt1 = datetime.datetime.now()
+            data = sql_connection(f"""SELECT `title`, `tag`, `host_name`, `thumbnail`, count, DATE_FORMAT(`start_datetime`, '%Y-%m-%d %H:%i:%s') as 'start_datetime' FROM `Room` WHERE `room_id`='{room_id}'""")[0]
+            dt2 = datetime.datetime.strptime(data["start_datetime"], '%Y-%m-%d %H:%M:%S')
+            data["time"] = f"{int((get_h_m_s(dt1-dt2)[0]))}時間{int((get_h_m_s(dt1-dt2)[1]))}分{int((get_h_m_s(dt1-dt2)[2]))}秒"
+            return jsonify(data)
         data = sql_connection("""SELECT * FROM `Room` WHERE `is_open`=1""")
         return jsonify(data)
     

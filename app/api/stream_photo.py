@@ -4,6 +4,7 @@ from app.utils.db_conn import sql_connection
 from app.lib.streamphoto import save_streamphoto, get_streamphoto
 import os
 import json
+import requests
 
 def is_user_exist(user_id):
     sql_text = f"""SELECT `user_name` FROM `User` WHERE `user_id`='{user_id}'"""
@@ -14,16 +15,15 @@ def is_user_exist(user_id):
 # 記録内容 - 画像データ(ファイル形式で保存) 
 class StreamPhoto(Resource):
     # 画像を記録する
-    """
     def post(self):
         # ルームidと各種設定、サムネイル画像を受け取る
         post_data = request.get_json()
-        save_streamphoto(post_data)
+        print(post_data)
+        
 
         # DBに置く
         return '', 204
-    """
-
+    
     # 画像名を受け取る
     def get(self):
         user_id = request.args.get('user_id')

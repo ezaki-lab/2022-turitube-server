@@ -43,7 +43,9 @@ class Stream(Namespace):
         user_type = data["user_type"]  # streamer, listener
         self.set_user(data)
         sql_connection(
-            f"""UPDATE `Room` SET {user_type}={user_type} + 1 WHERE `room_id`='{room}'""")
+            f"""UPDATE `Room` SET {user_type}={user_type}+1, `count`=count+1 WHERE `room_id`='{room}'""")
+
+        join_room(room)
 
         # 部屋がなければ作成
         if not room in self.streams.keys():
@@ -59,6 +61,10 @@ class Stream(Namespace):
                 "listener": [],
                 "displayPeer": ""
             }
+            emit("host",
+                        room=room,
+            broadcast=False,
+            include_self=True)
 
         # 再読み込み対策
         if user_name in self.streams[room]["listener"]:
@@ -76,17 +82,17 @@ class Stream(Namespace):
             else:
                 self.streams[room]["listener"].append(user_name)
 
-        join_room(room)
         emit("join", {
             'user_name': user_name,
             'user_type': user_type
-        })
+        },  room=room,
+            broadcast=True,
+            include_self=True)
         self.update_stream(room)
 
     # 部屋退室時
     def on_disconnect(self):
         sid = request.sid
-        print(request.sid + " disconnect")
         data = self.pop_user()
         user_name = data["user_name"]
         room = data["room_id"]
@@ -103,7 +109,7 @@ class Stream(Namespace):
 
             sql_connection(
                 f"""UPDATE `Room` SET {user_type}={user_type} - 1 WHERE `room_id`='{room}'""")
-
+            
             is_host = False
             if user_type == "streamer":
                 is_host = self.streams[room]["streamer"][user_name]["is_host"]
@@ -115,16 +121,21 @@ class Stream(Namespace):
             # ホストが退出したとき部屋を削除する
             if is_host:
                 del self.streams[room]
-                emit("delete_room", room=room)
+                emit("delete_room",
+                    room=room,
+                    broadcast=True,
+                    include_self=True)
                 sql_connection(
-                    f"""UPDATE `Room` SET `is_open`=0 WHERE `room_id`='{room}'""")
+                    f"""UPDATE `Room` SET `is_open`=0, `end_datetime`=NOW() WHERE `room_id`='{room}'""")
 
             # ホスト以外の時は部屋を更新する
             else:
                 emit("leave", {
-                    "room": self.streams[room],
-                    "user_type": user_type
-                })
+                    "user_name": user_name,
+                    "user_type": user_type,
+                },  room=room,
+                    broadcast=True,
+                    include_self=True)
                 self.update_stream(room)
 
     # チャット送信時
