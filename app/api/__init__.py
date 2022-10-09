@@ -7,14 +7,16 @@ from .stream import Stream
 from .stream_photo import StreamPhoto
 from .achive import Achive
 from .quest import Quest
-from .speacies_detection import Speacies
 from .items import Items
 from .icon import Icon
 from .books import Books
 from .picture_book import PictureBook
 from .room import Room
+from .fish_detection import FishDetection
+from .expression import Expression
 # user_name to user はprofileとかでいいと思います。
 import json
+
 
 def API(app):
     api = Api(app)
@@ -29,8 +31,9 @@ def API(app):
     api.add_resource(PictureBook, "/picture_book")
     api.add_resource(Room, "/room")
     api.add_resource(StreamPhoto, "/stream_photo")
-
+    api.add_resource(FishDetection, "/fish_detection")
+    api.add_resource(Expression, "/expression")
     api.add_resource(Stream, '/stream')
-    api.add_resource(Speacies, "/speacies")
+    
     api.add_resource(Test, "/test")
     return api

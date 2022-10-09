@@ -1,7 +1,7 @@
 from flask_restful import Resource, Api
 from flask import Flask, abort, request, jsonify
 from app.utils.db_conn import sql_connection
-from app.lib.streamphoto import save_streamphoto, get_streamphoto
+from app.lib.streamphoto import save_streamphoto_diary, get_streamphoto
 import os
 import json
 
@@ -17,7 +17,7 @@ class StreamPhoto(Resource):
     def post(self):
         # ルームidと各種設定、サムネイル画像を受け取る
         post_data = request.get_json()
-        save_streamphoto(post_data)
+        save_streamphoto_diary(post_data)
 
         # DBに置く
         return '', 204
