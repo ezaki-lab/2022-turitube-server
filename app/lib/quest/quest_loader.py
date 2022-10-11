@@ -68,8 +68,8 @@ def quest_loader():
             }]
         },
         "006": {
-            "title": "秋の名刀を手に入れろ",
-            "content": "サンマを3匹釣り上げる",
+            "title": "めでタイ！",
+            "content": "タイを1匹釣り上げる",
             "max_progress": 3,
             "items": [{
                 "id": "900",

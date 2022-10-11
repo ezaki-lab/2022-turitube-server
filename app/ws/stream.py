@@ -91,7 +91,7 @@ class Stream(Namespace):
         self.update_stream(room)
 
     # 部屋退室時
-    def on_disconnect(self):
+    def on_leave(self):
         sid = request.sid
         data = self.pop_user()
         user_name = data["user_name"]
