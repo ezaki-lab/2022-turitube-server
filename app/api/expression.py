@@ -22,11 +22,6 @@ folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../st
 class Expression(Resource):
     # 進捗の状態を取得する
     def post(self):
-        return jsonify({
-          "detect": False,
-          "face_id": 0,
-          "score": 0
-        })
         try:
             data = request.get_json()
             base64img = data["base64img"]
@@ -47,7 +42,7 @@ class Expression(Resource):
                     image_prediction = detector.detect_image(imgpath)
                 except:
                     print("uoooo")
-                    os.remove(imgpath)
+                    # os.remove(imgpath)
                     return jsonify({
                       "detect": False,
                       "face_id": 0,

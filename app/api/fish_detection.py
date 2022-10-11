@@ -13,7 +13,7 @@ counter = {}
 
 class FishDetection(Resource):
     def __init__(self):
-        self.classes = ["", "take", "madai", "kasago", "aji", "", "haze", "", "kawahagi", "saba","burakkubasu", "bera", "unagi", "sake", "tanago", "kurodai", "kisu", "buri"]
+        self.classes = ["", "タケノコメバル", "マダイ", "カサゴ", "アジ", "", "ハゼ", "", "カワハギ", "サバ","ブラックバス", "ベラ", "ウナギ", "サケ", "タナゴ", "クロダイ", "キス", "ブリ"]
         """
         {
             user_id:{
