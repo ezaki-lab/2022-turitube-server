@@ -4,55 +4,41 @@ from flask_socketio import emit, join_room, leave_room, Namespace
 from app.utils.db_conn import sql_connection
 import json
 
+# sidで管理すると面倒なことになるので使わない
+# user_nameで管理する
 
 class Stream(Namespace):
     def __init__(self, namespace):
         super().__init__(namespace)
         self.streams = {}
-        self.users = {}
-        self.videos = {} # sid: peerid
 
+    # 全体にmultiStream情報を送信
     def update_stream(self, room_id):
         emit("update_stream", self.streams[room_id],
              room=room_id,
              broadcast=True,
              include_self=True)
 
-    def set_user(self, data):
-        sid = request.sid
-        self.users[sid] = {
-            "user_name": data["user_name"],
-            "user_type": data["user_type"],
-            "room_id": data["room_id"]
-        }
+    # 再接続
+    def reconnect(self, data):
+        join_room(data["room_id"])
 
-    def remove_user(self):
-        sid = request.sid
-        del self.users[sid]
-
-    def pop_user(self):
-        sid = request.sid
-        data = self.users[sid]
-        del self.users[sid]
-        return data
-
-    # 部屋入室時
+    # 接続時の処理
     def on_join(self, data):
         room = data["room_id"]
         user_name = data["user_name"]
         user_type = data["user_type"]  # streamer, listener
-        self.set_user(data)
-        sql_connection(
-            f"""UPDATE `Room` SET {user_type}={user_type}+1, `count`=count+1 WHERE `room_id`='{room}'""")
-
+        sql_connection(f"""UPDATE `Room` SET {user_type}={user_type}+1, `count`=count+1 WHERE `room_id`='{room}'""")
         join_room(room)
+        is_host = False
 
         # 部屋がなければ作成
         if not room in self.streams.keys():
+            is_host = True
             self.streams[room] = {
                 "streamer": {
                     user_name: {
-                        "is_host": True,
+                        "is_host": is_host,
                         "camera": False,
                         "audio": False,
                         "face": 0
@@ -62,26 +48,25 @@ class Stream(Namespace):
                 "displayPeer": ""
             }
             emit("host",
-                        room=room,
-            broadcast=False,
-            include_self=True)
-
-        # 再読み込み対策
-        if user_name in self.streams[room]["listener"]:
-            self.streams[room]["listener"].remove(user_name)
+                room=room,
+                broadcast=False,
+                include_self=True)
 
         if room in self.streams.keys() and (not user_name in self.streams[room]["streamer"].keys()):
+            # 配信者参加
             if user_type == "streamer":
                 self.streams[room]["streamer"][user_name] = {
-                    "is_host": False,
+                    "is_host": is_host,
                     "camera": False,
                     "audio": False,
                     "face": 0
                 }
-
+            
+            # 視聴者参加
             else:
                 self.streams[room]["listener"].append(user_name)
 
+        # 参加通知用
         emit("join", {
             'user_name': user_name,
             'user_type': user_type
@@ -89,24 +74,29 @@ class Stream(Namespace):
             broadcast=True,
             include_self=True)
         self.update_stream(room)
-
-    # 部屋退室時
-    def on_leave(self):
-        sid = request.sid
-        data = self.pop_user()
+        
+    # 退出時の処理
+    def on_leave(self, data):
         user_name = data["user_name"]
         room = data["room_id"]
         user_type = data["user_type"]
+        myPeer = data["myPeer"]
+        remotePeer = data["remotePeer"]
         
         # 部屋が存在しなければ何もしない
         if room in self.streams.keys():
-            # ビデオつけたまま抜けるとバグるので削除する
-            if sid in self.videos.keys():
-                if self.streams[room]["displayPeer"]==self.videos[sid]:
-                    self.streams[room]["displayPeer"] = ""
-                    self.update_stream(room)
-                del self.videos[sid]
 
+            # ビデオつけたまま抜けるとバグるので削除する
+            if myPeer == remotePeer:
+                emit("camera_off", {
+                    "user_name": user_name,
+                    "peer_id": myPeer
+                },
+                room=room,
+                broadcast=True,
+                include_self=True)
+            
+            # dbのユーザーを減らす
             sql_connection(
                 f"""UPDATE `Room` SET {user_type}={user_type} - 1 WHERE `room_id`='{room}'""")
             
@@ -138,6 +128,33 @@ class Stream(Namespace):
                     include_self=True)
                 self.update_stream(room)
 
+    # 誰がカメラオンにしたか
+    def on_camera(self, data):
+        room = data["room_id"]
+        peer_id = data["peer_id"]
+        enable = data["enable"]
+        user_name = data["user_name"]
+
+        # オンならこっち
+        if enable:
+            emit("camera_on", {
+                "user_name": user_name,
+                "peer_id": peer_id
+            },
+            room=room,
+            broadcast=True,
+            include_self=True)
+
+        # オフならこっち
+        else:
+            emit("camera_off", {
+                "user_name": user_name,
+                "peer_id": peer_id
+            },
+            room=room,
+            broadcast=True,
+            include_self=True)
+    
     # チャット送信時
     def on_chat(self, data):
         room = data["room_id"]
@@ -163,24 +180,3 @@ class Stream(Namespace):
             self.streams[room]["streamer"][user_name]["audio"] = data["user"]["audio"]
             self.streams[room]["streamer"][user_name]["face"] = data["user"]["face"]
             self.update_stream(room)
-
-    def on_video(self, data):
-        sid = request.sid
-        room = data["room_id"]
-        peer_id = data["peer_id"]
-        enable = data["enable"]
-        user_name = data["user_name"]
-
-        # 特定ユーザーのカメラをオンにする。(ただしenebleがtrueの時のみ)
-        if enable:
-            self.streams[room]["displayPeer"] = peer_id
-            self.videos[sid] = peer_id
-            emit("camera", {
-                "user_name": user_name,
-            }, room=room)
-        else:
-            # 配信中ユーザーがいなくなったら切る
-            if (self.streams[room]["displayPeer"]==peer_id):
-                self.streams[room]["displayPeer"] = ""
-
-        self.update_stream(room)

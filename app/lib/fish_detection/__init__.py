@@ -16,7 +16,8 @@ def run_inference_single_image(image, inference_func):
 # 魚種判別をうまくやってくれます
 class FishDetectionManager():
     def __init__(self):
-        model_path = os.path.dirname(__file__) + "/saved_model"
+        # model_path = os.path.dirname(__file__) + "/saved_model" # 本番モデル(15種分類)
+        model_path = os.path.dirname(__file__) + "/demo_model" # デモ用モデル(1種類、真鯛)
         DEFAULT_FUNCTION_KEY = 'serving_default'
         loaded_model = tf.saved_model.load(model_path)
         self.inference_func = loaded_model.signatures[DEFAULT_FUNCTION_KEY]

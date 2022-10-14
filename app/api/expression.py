@@ -6,6 +6,7 @@ from feat import Detector
 import json
 from app.utils.unique_generater import generate_id
 import os
+import random
 
 face_model = "retinaface"
 landmark_model = "mobilenet"
@@ -20,8 +21,15 @@ detector = Detector(
 folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../static/img/')
 
 class Expression(Resource):
-    # 進捗の状態を取得する
     def post(self):
+        # デモ用
+        return jsonify({
+          "detect": False,
+          "face_id": random.randint(0, 3),
+          "score": 0.6
+        })
+    
+        # 本来の動作
         try:
             data = request.get_json()
             base64img = data["base64img"]
