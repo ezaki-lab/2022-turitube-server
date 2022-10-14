@@ -12,12 +12,13 @@ class PictureBook(Resource):
     def get(self):
         user_id = request.args.get('user_id')
         fish_id = request.args.get('fish_id')
-        book = pictureBookManager.get(user_id, fish_id)
+        book, max_size = pictureBookManager.get(user_id, fish_id)
 
         return jsonify({
                 "status": True,
                 "comment": f"success register icon",
-                "book": book
+                "book": book,
+                "max_size": max_size
             })
     # 図鑑に記録
     def post(self):

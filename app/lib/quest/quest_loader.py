@@ -70,7 +70,7 @@ def quest_loader():
         "006": {
             "title": "めでタイ！",
             "content": "タイを1匹釣り上げる",
-            "max_progress": 3,
+            "max_progress": 1,
             "items": [{
                 "id": "900",
                 "amount": 300

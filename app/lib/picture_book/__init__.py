@@ -22,6 +22,7 @@ class PictureBookManager():
 
     def get(self, user_id, fish_id):
         book = picture_book_loader()[fish_id]
-        fishes = sql_connection(f"""SELECT `img_name`, `datetime`, `place_name`, `size` FROM `PictureBook` WHERE `user_id`='{user_id}' AND `fish_id`='{fish_id}'""")
+        fishes = sql_connection(f"""SELECT `img_name`, DATE_FORMAT(`datetime`, '%Y-%m-%d %H:%i:%s') as 'datetime', `place_name`, `size` FROM `PictureBook` WHERE `user_id`='{user_id}' AND `fish_id`='{fish_id}'""")
+        max_size = sql_connection(f"""SELECT max(`size`) as 'max_size' FROM `PictureBook` WHERE `user_id`='{user_id}' AND `fish_id`='{fish_id}'""")[0]["max_size"]
         book["data"] = fishes
-        return book
+        return book, max_size
